@@ -1,0 +1,97 @@
+---
+import TarotForm from '../components/TarotForm.astro';
+import '../styles/global.css';
+
+const siteUrl   = Astro.url.origin;
+const pageUrl   = Astro.url.href;
+const imageUrl  = `${siteUrl}/preview.jpg`;
+const title     = 'Luz de Arcanos — Consultas de Tarot';
+const description = 'Recibí una lectura de tarot personalizada gratis. Ingresá tu nombre y tu pregunta, y la IA interpretará las cartas del mazo para vos.';
+---
+
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={pageUrl} />
+
+    <!-- Open Graph -->
+    <meta property="og:type"        content="website" />
+    <meta property="og:url"         content={pageUrl} />
+    <meta property="og:site_name"   content="Luz de Arcanos" />
+    <meta property="og:locale"      content="es_AR" />
+    <meta property="og:title"       content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image"       content={imageUrl} />
+    <meta property="og:image:width"  content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt"   content="Luz de Arcanos — Consultas de Tarot" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card"        content="summary_large_image" />
+    <meta name="twitter:title"       content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image"       content={imageUrl} />
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#0d0a1a" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- JSON-LD -->
+    <script is:inline type="application/ld+json" set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'WebApplication',
+      name: 'Luz de Arcanos',
+      description,
+      url: siteUrl,
+      applicationCategory: 'EntertainmentApplication',
+      operatingSystem: 'Web',
+      inLanguage: 'es',
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'USD',
+      },
+    })} />
+  </head>
+
+  <body>
+    <video class="video-bg" autoplay muted loop playsinline>
+      <source src="/video/loopHero.mp4" type="video/mp4" />
+    </video>
+    <div class="video-overlay"></div>
+
+    <main class="container">
+
+      <header class="hero">
+        <span class="hero__sigil">✦</span>
+        <h1 class="hero__title">Luz de Arcanos</h1>
+        <p class="hero__subtitle">
+          Las cartas conocen lo que el corazón aún no puede articular.
+          Comparte tu consulta y el mazo hablará por ti.
+        </p>
+      </header>
+
+      <div class="divider">✦</div>
+
+      <TarotForm />
+
+    </main>
+
+    <footer class="footer">
+      <p>Servicio recreativo. Las lecturas reflejan las energías del momento y no predicen el futuro con certeza.</p>
+      <p>No se responden consultas sobre salud, diagnósticos médicos ni embarazo. Para esos temas, consultá a un profesional.</p>
+    </footer>
+  </body>
+</html>

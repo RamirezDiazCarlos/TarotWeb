@@ -1,0 +1,19 @@
+{
+  "name": "tarotweb",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/vercel": "^9.0.4",
+    "@google/genai": "^1.42.0",
+    "astro": "^5.17.1"
+  },
+  "trustedDependencies": [
+    "protobufjs"
+  ]
+}

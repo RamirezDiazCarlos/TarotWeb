@@ -1,0 +1,264 @@
+---
+---
+
+<section id="form-section">
+  <form id="tarot-form" class="consult-form" novalidate>
+    <div class="form-field">
+      <label for="name">Tu nombre</label>
+      <input
+        id="name"
+        name="name"
+        type="text"
+        placeholder="¿Cómo te llamas?"
+        maxlength="60"
+        required
+        autocomplete="given-name"
+      />
+    </div>
+
+    <div class="form-field">
+      <label for="question">Tu consulta</label>
+      <textarea
+        id="question"
+        name="question"
+        rows="4"
+        placeholder="¿Qué deseas explorar? Puedes ser tan detallado/a como quieras…"
+        maxlength="500"
+        required
+      ></textarea>
+    </div>
+
+    <button type="submit" class="btn-submit" id="submit-btn">
+      ✦ Revelar mi destino ✦
+    </button>
+
+    <div class="error-message" id="error-msg" role="alert"></div>
+  </form>
+</section>
+
+<section class="loading-section" id="loading-section" aria-live="polite">
+  <span class="loading-spinner" aria-hidden="true">✦</span>
+  <p class="loading-text">Seraphina consulta las cartas para ti…</p>
+</section>
+
+<section class="reading-section" id="reading-section">
+
+  <div class="cards-grid">
+    <div class="card-position">
+      <p class="position-label">Pasado</p>
+      <div class="card" id="card-0">
+        <div class="card-inner">
+          <div class="card-face card-back">
+            <div class="card-back-pattern">✦</div>
+          </div>
+          <div class="card-face card-front" id="card-front-0"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-position">
+      <p class="position-label">Presente</p>
+      <div class="card" id="card-1">
+        <div class="card-inner">
+          <div class="card-face card-back">
+            <div class="card-back-pattern">✦</div>
+          </div>
+          <div class="card-face card-front" id="card-front-1"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-position">
+      <p class="position-label">Futuro</p>
+      <div class="card" id="card-2">
+        <div class="card-inner">
+          <div class="card-face card-back">
+            <div class="card-back-pattern">✦</div>
+          </div>
+          <div class="card-face card-front" id="card-front-2"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider">✦</div>
+
+  <div class="reading-box" id="reading-box"></div>
+
+  <button class="btn-reset" id="reset-btn" type="button">
+    ↩ Nueva consulta
+  </button>
+
+</section>
+
+<script>
+  import { actions } from 'astro:actions';
+  import { drawCards } from '../data/cards';
+  import type { TarotCard } from '../data/cards';
+
+  const formSection    = document.getElementById('form-section')!;
+  const loadingSection = document.getElementById('loading-section')!;
+  const readingSection = document.getElementById('reading-section')!;
+  const tarotForm      = document.getElementById('tarot-form') as HTMLFormElement;
+  const submitBtn      = document.getElementById('submit-btn') as HTMLButtonElement;
+  const errorMsg       = document.getElementById('error-msg')!;
+  const readingBox     = document.getElementById('reading-box')!;
+  const resetBtn       = document.getElementById('reset-btn')!;
+
+  function showSection(section: 'form' | 'loading' | 'reading') {
+    formSection.style.display    = section === 'form'    ? '' : 'none';
+    loadingSection.classList.toggle('active', section === 'loading');
+    readingSection.classList.toggle('active', section === 'reading');
+    document.body.classList.toggle('reading-mode', section === 'reading');
+
+    if (section === 'reading') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  function showError(msg: string) {
+    errorMsg.textContent = msg;
+    errorMsg.classList.add('active');
+    submitBtn.disabled = false;
+  }
+
+  function clearError() {
+    errorMsg.textContent = '';
+    errorMsg.classList.remove('active');
+  }
+
+  function populateCard(index: number, card: TarotCard) {
+    const front = document.getElementById(`card-front-${index}`)!;
+
+    if (card.reversed) {
+      front.classList.add('reversed-card');
+    }
+
+    front.innerHTML = `
+      <img
+        src="/cards/${card.image}"
+        alt="${card.name}"
+        class="card-image"
+        loading="lazy"
+      />
+      <span class="card-name">${card.name}</span>
+    `;
+  }
+
+  function flipCards() {
+    [0, 1, 2].forEach((i) => {
+      setTimeout(() => {
+        document.getElementById(`card-${i}`)?.classList.add('flipped');
+      }, i * 700);
+    });
+  }
+
+  function resetCards() {
+    [0, 1, 2].forEach((i) => {
+      const card  = document.getElementById(`card-${i}`);
+      const front = document.getElementById(`card-front-${i}`);
+      card?.classList.remove('flipped');
+      front?.classList.remove('reversed-card');
+      if (front) front.innerHTML = '';
+    });
+  }
+
+  function renderReading(text: string) {
+    const paragraphs = text
+      .split(/\n{2,}/)
+      .map((p) => p.trim())
+      .filter(Boolean);
+
+    readingBox.innerHTML = paragraphs
+      .map((p, i) => `<p style="animation-delay:${i * 0.25}s">${p.replace(/\n/g, ' ')}</p>`)
+      .join('');
+  }
+
+  const LIMIT = 5;
+  const WINDOW_MS = 24 * 60 * 60 * 1000;
+  const STORAGE_KEY = 'tarot_usage';
+
+  function getUsage(): { count: number; firstUse: number } {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    return { count: 0, firstUse: Date.now() };
+  }
+
+  function incrementUsage(): void {
+    const usage = getUsage();
+    const now = Date.now();
+    const reset = now - usage.firstUse >= WINDOW_MS;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      count: reset ? 1 : usage.count + 1,
+      firstUse: reset ? now : usage.firstUse,
+    }));
+  }
+
+  function getRemainingReadings(): number {
+    const usage = getUsage();
+    if (Date.now() - usage.firstUse >= WINDOW_MS) return LIMIT;
+    return Math.max(0, LIMIT - usage.count);
+  }
+
+  tarotForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearError();
+
+    const name     = (document.getElementById('name') as HTMLInputElement).value.trim();
+    const question = (document.getElementById('question') as HTMLTextAreaElement).value.trim();
+
+    if (!name) { showError('Por favor ingresa tu nombre.'); return; }
+    if (!question) { showError('Por favor ingresa tu consulta.'); return; }
+
+    if (getRemainingReadings() <= 0) {
+      showError('Alcanzaste el límite de 5 consultas por día. Volvé mañana para seguir explorando.');
+      return;
+    }
+
+    const cards = drawCards(3);
+
+    submitBtn.disabled = true;
+    cards.forEach((card, i) => populateCard(i, card));
+
+    showSection('reading');
+    readingBox.innerHTML = '<p class="reading-loading">Seraphina está interpretando las cartas…</p>';
+
+    // Pequeño delay para que el DOM se pinte antes de animar
+    setTimeout(flipCards, 200);
+
+    try {
+      const { data, error } = await actions.tarot.consult({ name, question, cards });
+
+      if (error) {
+        resetCards();
+        showSection('form');
+        if (error.code === 'BAD_REQUEST') {
+          showError('Los datos enviados no son válidos. Revisá el nombre y la consulta.');
+        } else {
+          showError('El oráculo no pudo completar tu lectura. Inténtalo de nuevo en unos momentos.');
+        }
+        return;
+      }
+
+      incrementUsage();
+      renderReading(data.reading);
+
+    } catch {
+      resetCards();
+      showSection('form');
+      showError('No se pudo conectar con el oráculo. Verificá tu conexión e inténtalo de nuevo.');
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+
+  resetBtn.addEventListener('click', () => {
+    tarotForm.reset();
+    clearError();
+    resetCards();
+    readingBox.innerHTML = '';
+    showSection('form');
+  });
+</script>
