@@ -472,6 +472,23 @@ body.reading-mode .container {
   flex-shrink: 0;
 }
 
+.footer__credit {
+  margin-top: 0.4rem;
+  font-style: normal;
+  font-size: 0.75rem;
+}
+
+.footer__credit a {
+  color: var(--gold-dim);
+  text-decoration: none;
+  letter-spacing: 0.08em;
+  transition: color var(--transition);
+}
+
+.footer__credit a:hover {
+  color: var(--gold);
+}
+
 .error-message {
   background: rgba(220, 38, 38, 0.1);
   border: 1px solid rgba(220, 38, 38, 0.3);
