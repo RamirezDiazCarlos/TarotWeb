@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
-
 :root {
   --bg:        #0d0a1a;
   --surface:   #15112a;
@@ -14,7 +12,7 @@
   --glow:      rgba(201, 168, 76, 0.12);
 
   --radius-card: 14px;
-  --transition: 0.3s ease;
+  --transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 *, *::before, *::after {
@@ -138,7 +136,8 @@ h1, h2, h3 {
   border-radius: var(--radius-card);
   padding: 2rem;
   box-shadow: 0 0 60px var(--glow), inset 0 1px 0 rgba(255,255,255,0.04);
-  margin-bottom: 0;
+  max-width: 520px;
+  margin: 0 auto;
 }
 
 .form-field {
@@ -192,14 +191,19 @@ h1, h2, h3 {
   border: 1px solid rgba(124, 58, 237, 0.6);
   border-radius: 8px;
   cursor: pointer;
-  transition: all var(--transition);
+  transition: background var(--transition), border-color var(--transition), transform var(--transition);
   text-transform: uppercase;
 }
 
 .btn-submit:hover:not(:disabled) {
   background: linear-gradient(135deg, var(--violet), #9f4ff0);
-  box-shadow: 0 0 24px rgba(124, 58, 237, 0.4);
+  border-color: rgba(124, 58, 237, 0.9);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
   transform: translateY(-1px);
+}
+
+.btn-submit:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .btn-submit:disabled {
@@ -290,6 +294,10 @@ body.reading-mode .container {
   cursor: default;
 }
 
+.card:not(.flipped) {
+  cursor: pointer;
+}
+
 .card-inner {
   width: 100%;
   height: 100%;
@@ -318,6 +326,12 @@ body.reading-mode .container {
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.card:not(.flipped):hover .card-back {
+  border-color: var(--gold);
+  box-shadow: 0 0 24px rgba(201, 168, 76, 0.15);
 }
 
 .card-back-pattern {
@@ -429,9 +443,10 @@ body.reading-mode .container {
 
 .reading-loading {
   text-align: center;
-  color: var(--muted);
+  color: var(--muted) !important;
   font-style: italic;
-  animation: pulse-text 1.8s ease-in-out infinite;
+  opacity: 1 !important;
+  animation: fade-in-up 0.4s ease forwards, pulse-text 1.8s ease-in-out 0.4s infinite !important;
 }
 
 @keyframes pulse-text {
@@ -452,7 +467,7 @@ body.reading-mode .container {
   border: 1px solid var(--gold-dim);
   border-radius: 8px;
   cursor: pointer;
-  transition: all var(--transition);
+  transition: color var(--transition), border-color var(--transition), background var(--transition), transform var(--transition);
   text-transform: uppercase;
 }
 
@@ -460,6 +475,10 @@ body.reading-mode .container {
   color: var(--gold);
   border-color: var(--gold-dim);
   background: var(--glow);
+}
+
+.btn-reset:active {
+  transform: scale(0.98);
 }
 
 .footer {
@@ -502,4 +521,60 @@ body.reading-mode .container {
 
 .error-message.active {
   display: block;
+}
+
+/* ── Responsive ─────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .cards-grid {
+    grid-template-columns: repeat(3, 180px);
+    gap: 1.25rem;
+  }
+
+  .card {
+    width: 180px;
+    height: 297px;
+    perspective: 1600px;
+  }
+}
+
+@media (max-width: 620px) {
+  .cards-grid {
+    grid-template-columns: repeat(3, 100px);
+    gap: 0.65rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .card {
+    width: 100px;
+    height: 165px;
+    perspective: 900px;
+  }
+
+  .position-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+  }
+
+  .card-name {
+    font-size: 0.55rem;
+    letter-spacing: 0.04em;
+    padding: 0.35rem 0.25rem;
+  }
+
+  .reading-box {
+    padding: 1.25rem;
+  }
+
+  .reading-box p {
+    font-size: 1.05rem;
+  }
+
+  .consult-form {
+    padding: 1.5rem;
+  }
+
+  .hero {
+    padding: 1rem 1rem 0.5rem;
+  }
 }
