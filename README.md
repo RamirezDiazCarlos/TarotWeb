@@ -6,6 +6,8 @@ Aplicación web de lecturas de tarot personalizadas generadas en tiempo real por
 
 ---
 
+**[→ Mintifly](https://ramirezdiazcarlos-tarotweb.mintlify.app/)**
+
 ## Qué se construyó
 
 - Integración con **Google Gemini 2.5 Flash** para generar lecturas únicas en cada consulta
