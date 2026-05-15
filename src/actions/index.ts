@@ -1,4 +1,4 @@
-import { defineAction } from 'astro:actions';
+import { defineAction, ActionError } from 'astro:actions';
 import { z } from 'astro:schema';
 import { GoogleGenAI } from '@google/genai';
 
@@ -33,7 +33,33 @@ export const server = {
         question: z.string().min(1).max(500),
         cards: z.array(CardSchema).length(3),
       }),
-      handler: async ({ name, question, cards }) => {
+      handler: async ({ name, question, cards }, context) => {
+        const RL_LIMIT = 5;
+        const RL_WINDOW_MS = 24 * 60 * 60 * 1000;
+        const RL_COOKIE = 'tarot_rl';
+
+        const raw = context.cookies.get(RL_COOKIE)?.value;
+        let usage = { count: 0, firstUse: Date.now() };
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw);
+            if (typeof parsed.count === 'number' && typeof parsed.firstUse === 'number') {
+              usage = parsed;
+            }
+          } catch {}
+        }
+
+        const now = Date.now();
+        if (now - usage.firstUse >= RL_WINDOW_MS) {
+          usage = { count: 0, firstUse: now };
+        }
+        if (usage.count >= RL_LIMIT) {
+          throw new ActionError({
+            code: 'TOO_MANY_REQUESTS',
+            message: 'Límite de consultas diarias alcanzado.',
+          });
+        }
+
         const apiKey = import.meta.env.GEMINI_API_KEY;
         if (!apiKey) {
           throw new Error('GEMINI_API_KEY no configurada');
@@ -89,6 +115,15 @@ RESTRICCIONES: Si la pregunta trata sobre salud, enfermedades, diagnósticos mé
         }
 
         reading ??= getFallbackReading(name, cards);
+
+        usage.count += 1;
+        context.cookies.set(RL_COOKIE, JSON.stringify(usage), {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'strict',
+          maxAge: 60 * 60 * 48,
+          path: '/',
+        });
 
         return { reading };
       },
